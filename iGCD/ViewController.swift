@@ -33,7 +33,9 @@ class ViewController: UIViewController {
         //self.serialQueueASync()
         
         // concurrent: 完全無法決定順序
-        self.concurrentQueueASync()
+        //self.concurrentQueueASync()
+        
+        self.testDictThreadSafety()
     }
     
     // MARK: serialQueue + sync = 完全依序處理
@@ -144,5 +146,27 @@ class ViewController: UIViewController {
         }
     }
     
+    final private func testDictThreadSafety() {
+        var dict = [String: DictElement]()
+        
+        for idx in 0...10 {
+            DispatchQueue.global().async {
+                let element = DictElement(serNo: idx)
+                dict["Element"] = element
+                element.description()
+            }
+        }
+    }
 }
 
+class DictElement {
+    private var serNo: Int
+    private var eName: String
+    init(serNo: Int) {
+        self.serNo = serNo
+        self.eName = UUID().uuidString
+    }
+    func description() {
+        print("description >>>> \(self.serNo) -> \(self.eName)")
+    }
+}
