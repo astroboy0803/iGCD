@@ -16,14 +16,14 @@ class ViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // sync: 等設定的工作執行完才離開
-        // async: 不管工作是否完成，就直接離開
+        // sync: 等設定的工作執行完才離開 > 每間店餐點完成後再到另一間店
+        // async: 不管工作是否完成，就直接離開 > 打電話叫餐點
         // sync和async會接收待處理的事情(工作) - clousre or workitem
         // 完成工作的定義: 是指程式有每一行都有執行
         // p.s. 執行的程式若有非同步作業(如發送網路請求)，同定義，掃過不等待
         
-        // serial: 同時間只會處理一件工作
-        // concurrent: 同時間會處理很多工作
+        // serial: 同時間只會處理一件工作 > 只有一個人
+        // concurrent: 同時間會處理很多工作 > 有很多個人
         
         // sync 結果會相同
         //self.serialQueueSync()
