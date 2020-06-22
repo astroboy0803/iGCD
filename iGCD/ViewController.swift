@@ -22,8 +22,8 @@ class ViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        //self.testGCD()
-        self.testOperationQueue()
+        self.testGCD()
+        //self.testOperationQueue()
     }
 }
 
@@ -122,7 +122,7 @@ extension ViewController {
         //self.concurrentQueueASync()
         
         // serial sync+async交叉應用
-        //self.serialQueueComplex()
+        self.serialQueueComplex()
         
         
         // Thread safe code can be safely called from multiple threads or concurrent tasks without causing any problems such as data corruption or app crashes
@@ -133,7 +133,7 @@ extension ViewController {
         // 1 serial queue -> block -> resolve
         // 2 concurrency queue -> not block -> unsafe -> set flags(DispatchWorkItemFlags) to indicate that it should be the only item executed on the specified queue for that particular time
         // all items submitted to the queue prior to the dispatch barrier must complete before the DispatchWorkItem will execute.
-        self.testDictThreadSafety()
+        //self.testDictThreadSafety()
     }
         
     // MARK: serialQueue + sync = 完全依序處理
@@ -257,16 +257,33 @@ extension ViewController {
         serialQueue.async {
             for i in 10 ... 19 {
                 print("i: \(i)")
-                sleep(1)
             }
         }
         
-        serialQueue.async {
+        serialQueue.sync {
             for i in 20 ... 29 {
                 print("i: \(i)")
             }
         }
         
+        serialQueue.async {
+            for i in 30 ... 39 {
+                print("i: \(i)")
+            }
+        }
+        
+        serialQueue.sync {
+            for i in 40 ... 49 {
+                print("i: \(i)")
+            }
+        }
+        
+        serialQueue.async {
+            for i in 50 ... 59 {
+                print("i: \(i)")
+            }
+        }
+                
         for j in 100 ... 109 {
             print("j: \(j)")
         }
