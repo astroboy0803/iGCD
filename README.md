@@ -23,8 +23,13 @@ iOS實現多工作業的方式：
 - async：task放入佇列後就離開，not blocking(不阻塞)，不管程式結果如何，直接執行下一行程式
 
 ### serial vs concurrent
-- serial：一次只能執行一個task
-- concurrent：一次可以執行多個task
+- serial：一次只能執行一個task，可知執行順序
+
+![](./images/serialQueueWork.gif)
+
+- concurrent：一次可以執行多個task，無法預測執行順序
+
+![](./images/concurrentQueueWork.gif)
 
 ### 範例
 - [Serial Queue with Sync](./Examples/SerialQueueWithSync.md)
