@@ -112,7 +112,7 @@ extension ViewController {
         // 3 custom - serial or concurrent
         
         // sync 結果會相同
-        //self.serialQueueSync()
+        self.serialQueueSync()
         //self.concurrentQueueSync()
         
         // serial: async內設定的作業還是依序處理, 但與沒加在在async的工作會交互進行
@@ -122,7 +122,7 @@ extension ViewController {
         //self.concurrentQueueASync()
         
         // serial sync+async交叉應用
-        self.serialQueueComplex()
+        //self.serialQueueComplex()
         
         
         // Thread safe code can be safely called from multiple threads or concurrent tasks without causing any problems such as data corruption or app crashes
@@ -135,33 +135,79 @@ extension ViewController {
         // all items submitted to the queue prior to the dispatch barrier must complete before the DispatchWorkItem will execute.
         //self.testDictThreadSafety()
     }
-        
+    
     // MARK: serialQueue + sync = 完全依序處理
     final private func serialQueueSync() {
+        // 範例: 自己購買午餐(便當 + 飲料 + 水果 + 甜點)
+        // task: 騎車->買便當(排隊>點餐>取餐)->騎車->買飲料(排隊>點餐>取餐)->騎車->買水果(挑水果>排隊>結帳)->騎車->買甜點(排隊>點餐>取餐)->騎車
         let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
-
-        // 驗證同步執行的結果
+        // 騎車
         serialQueue.sync {
-            for i in 0 ... 9 {
-                print("i: \(i)")
-            }
+            print("騎車至便當店")
+            sleep(5)
         }
         
+        // 買便當
         serialQueue.sync {
-            for i in 10 ... 19 {
-                print("i: \(i)")
-            }
+            print("便當-排隊")
+            sleep(1)
+            print("便當-點餐")
+            sleep(3)
+            print("便當-取餐")
         }
         
+        // 騎車
         serialQueue.sync {
-            for i in 20 ... 29 {
-                print("i: \(i)")
-            }
+            print("騎車至飲料店")
+            sleep(2)
         }
         
-        for j in 100 ... 109 {
-            print("j: \(j)")
+        // 買飲料
+        serialQueue.sync {
+            print("飲料-排隊")
+            sleep(1)
+            print("飲料-點餐")
+            sleep(3)
+            print("飲料-取餐")
         }
+        
+        // 騎車
+        serialQueue.sync {
+            print("騎車至水果攤")
+            sleep(3)
+        }
+        
+        // 買水果
+        serialQueue.sync {
+            print("水果-挑水果")
+            sleep(1)
+            print("水果-排隊")
+            sleep(3)
+            print("水果-結帳")
+        }
+        
+        // 騎車
+        serialQueue.sync {
+            print("騎車至甜點店")
+            sleep(2)
+        }
+        
+        // 買甜點
+        serialQueue.sync {
+            print("甜點-排隊")
+            sleep(1)
+            print("甜點-點餐")
+            sleep(3)
+            print("甜點-取餐")
+        }
+        
+        // 騎車
+        serialQueue.sync {
+            print("騎車回家")
+            sleep(2)
+        }
+        
+        print("已買完午餐")
     }
     
     final private func serialQueueASync() {
@@ -247,39 +293,52 @@ extension ViewController {
     final private func serialQueueComplex() {
         let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
         
-        // 驗證同步執行的結果
+        // 驗證同步執行的結果 0-9
         serialQueue.sync {
             for i in 0 ... 9 {
                 print("i: \(i)")
             }
         }
         
+        // 10-19
         serialQueue.async {
+            print("start...")
             for i in 10 ... 19 {
                 print("i: \(i)")
             }
         }
         
+        // 20-29
         serialQueue.sync {
             for i in 20 ... 29 {
                 print("i: \(i)")
             }
         }
         
+        // 30-39
         serialQueue.async {
             for i in 30 ... 39 {
                 print("i: \(i)")
             }
         }
         
-        serialQueue.sync {
+        // 40-49
+        serialQueue.async {
             for i in 40 ... 49 {
                 print("i: \(i)")
             }
         }
         
-        serialQueue.async {
+        // 50-59
+        serialQueue.sync {
             for i in 50 ... 59 {
+                print("i: \(i)")
+            }
+        }
+        
+        // 60-69
+        serialQueue.async {
+            for i in 60 ... 69 {
                 print("i: \(i)")
             }
         }
