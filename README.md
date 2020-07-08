@@ -71,12 +71,22 @@ iOS實現多工作業常用方式：
 - Serial Queue with Sync
   - 範例程式: **testOperationQueue**
   - 流程圖
-  ![serial queue with sync ](./images/SQSync.gif)
+  
+  ![serial queue with sync](./images/SQSync.gif)
+  
   - 中斷點驗證
-  ![breakpoint of serial queue with sync ](./images/BPSQSync.gif)
+  
+  ![breakpoint of serial queue with sync](./images/BPSQSync.gif)
 
 - Coucurecy Queue with Sync
-
+  - 範例程式: **concurrentQueueSync**
+  - 流程圖
+  
+  ![concurrent queue with sync](./images/CQSync.gif)
+  
+  - 中斷點驗證
+  
+  ![breakpoint of serial queue with sync](./images/BPCQSync.gif)
 
 - Serial Queue with Async
 - Coucurecy Queue with Async
