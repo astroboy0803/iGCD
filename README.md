@@ -7,6 +7,7 @@ iOS實現多工作業常用方式：
 ---
 
 ## GCD
+> Dispatch queues are thread-safe which means that you can access them from multiple threads simultaneously
 
 ### Concurrency(平行) vs Parallelism(並行)
 
@@ -18,10 +19,31 @@ iOS實現多工作業常用方式：
 - Parallelism：同時執行task
 > Note that GCD decides how much parallelism it requires based on the system and available system resources. It’s important to note that parallelism requires concurrency, but concurrency does not guarantee parallelism
 
-iOS Queue種類
+### Queue種類
 - main: Serial Queue
 - global: Concurrent Queue
-- custom: 自行建立與管理，開發者依需求自行決定Serial Queue或Concurrent Queue
+- custom: 自行建立與管理，開發者依需求自行決定Serial Queue或Concurrent Queue 
+
+### queue的執行順序
+- GCD直接調用c的api
+  1. DISPATCH_QUEUE_PRIORITY_HIGH
+  2. DISPATCH_QUEUE_PRIORITY_DEFAULT
+  3. DISPATCH_QUEUE_PRIORITY_LOW 
+  4. DISPATCH_QUEUE_PRIORITY_BACKGROUND
+      
+          dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)
+
+- 現行Swift透過quality of service(qos)決定執行順位
+  1. userInteractive → main
+  2. userInitiated → global.high
+  3. default → global.default
+  4. utility → global.low
+  5. background → global.background
+  6. unspecified → global.background
+          
+          DispatchQueue(label: "xxx", qos: .background)
+
+
 
 ### serial vs concurrent
 - serial：一次只能執行一個task，可知執行順序
@@ -53,7 +75,57 @@ iOS Queue種類
 
 ### DispatchGruop
 
-### DispatchSem
+### DispatchSemaphore
+
+### Thread Safe
+> Thread safe code can be safely called from multiple threads or concurrent tasks without causing any problems such as data corruption or app crashes
+
+- 需考慮Thread Safety狀況
+  1. 靜態變數初始化 
+     - 必須保證atomic
+     - Singleton
+       - objc：使用gcd來確保atomic，在gcd以前會使用NSLock
+
+              // NSLock
+              + (void)initialize {
+                  initLock = [[NSLock alloc] init];
+              }            
+              - (instancetype)init {
+                  [initLock lock];
+                  if (initialized) {
+                      [self doesNotRecognizeSelector:_cmd];
+                      return nil;
+                  }
+                  initialized = YES;
+                  [initLock unlock];
+                  self = [super init];
+                  return self;
+              }
+
+              // GCD
+              +(instancetype)sharedInstance{    
+                  static dispatch_once_t onceToken;
+                  dispatch_once(&onceToken, ^{
+                      instance = [[super allocWithZone:NULL] init];
+                  });
+                  return instance;
+              }
+
+       - swift：golbal變數採用lazy initializer，在第一次被存取時，會自行調用dispatch_once以確保物件atomic，所以不用特別處理。
+
+              static let sharedInstance = SomeObject()
+
+  2. 不同執行緒操作同一物件
+     - 該物件unthread safe
+       - ex:collection types like Array and Dictionary
+     - 物件為mutable
+     - 解決方式：使用GCD來解決
+       1. Serial Queue
+       2. concurrent queue + barriers flag
+     - 範例程式: **testOperationQueue**
+
+### 結論
+- 非必要不使用sync：雖然是交由其它thread來處理，但還是要等工作做完才可以往下，那不如留在原本的thread處理即可
 
 ---
 ## Operation + OperationQueue
@@ -62,7 +134,7 @@ iOS Queue種類
 - 可依需求隨時取消或中斷執行的作業
 - 重新封裝，寫法較優雅
 - 僅能以concurrent運作
-  - 雖然沒有serial模式，但可以籍由task間設定dependency達到serial效果
+  - 可以設定task間的dependency達到serial效果
 - task執行後就被移除
 - Operation 
   - 抽象類別，必須實作這個類別才可以放入OperationQueue
@@ -78,7 +150,7 @@ iOS Queue種類
               // something...
           }
           operationQueue.addOperation(blockOperation)
-
+- 範例程式: **testOperationQueue**
 ---
 ## 參考資料
   - [Swift 3學習指南：重新認識GCD應用](https://www.appcoda.com.tw/grand-central-dispatch/)
@@ -90,3 +162,4 @@ iOS Queue種類
   - [NSOpertation 與 NSOperationQueue](https://zonble.gitbooks.io/kkbox-ios-dev/threading/nsoperation_and_nsoperationqueue.html)
   - [iOS 並行程式設計: 初探 NSOperation 和 Dispatch Queues](https://www.appcoda.com.tw/ios-concurrency/)
   - [Concurrency in Swift (Operations and Operation Queue Part 3)](https://medium.com/@aliakhtar_16369/concurrency-in-swift-operations-and-operation-queue-part-3-a108fbe27d61)
+  - [Files and Initialization](https://developer.apple.com/swift/blog/?id=7)
