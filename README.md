@@ -36,10 +36,14 @@ iOS Queue種類
 - sync
   - 等待task執行完成後才離開
   - blocking(阻塞)，結束前程式不會往下執行
+
+![sync](./images/Sync.gif)
+
 - async
   - task放入work queue後就離開
   - not blocking(不阻塞)，不等待task直接往下執行程式
 
+![async](./images/Async.gif)
 
 ### 範例
 - Serial Queue with Sync
@@ -47,9 +51,33 @@ iOS Queue種類
 - Serial Queue with Async
 - Coucurecy Queue with Async
 
+### DispatchGruop
+
+### DispatchSem
 
 ---
 ## Operation + OperationQueue
+> Operations are an object-oriented way to encapsulate work that you want to perform asynchronously. Operations are designed to be used either in conjunction with an operation queue or by themselves
+
+- 可依需求隨時取消或中斷執行的作業
+- 重新封裝，寫法較優雅
+- 僅能以concurrent運作
+  - 雖然沒有serial模式，但可以籍由task間設定dependency達到serial效果
+- task執行後就被移除
+- Operation 
+  - 抽象類別，必須實作這個類別才可以放入OperationQueue
+  - 加入的task以sync方式執行
+    - 想要達到async效果就必須切成多個Operation放入OperationQueue，由OperationQueue取出執行
+  - Cocoa/Cocoa Touch Framework已實作兩個Operation子類別，讓開發人員可以自行使用
+    - BlockOperation：可以建立一個或多個block, 當全部Black的都執行完才視為任務完成
+    - InvocationOperation：可用於執行指定對象的選擇器(Selector)，swift無此類別
+
+          let operationQueue = OperationQueue()
+          let blockOperation = BlockOperation()
+          blockOperation.addExecutionBlock {
+              // something...
+          }
+          operationQueue.addOperation(blockOperation)
 
 ---
 ## 參考資料
