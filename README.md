@@ -86,12 +86,44 @@ iOS實現多工作業常用方式：
   
   - 中斷點驗證
   
-  ![breakpoint of serial queue with sync](./images/BPCQSync.gif)
+  ![breakpoint of concurrent queue with sync](./images/BPCQSync.gif)
 
 - Serial Queue with Async
+  - 範例程式: **serialQueueASync**
+  - 僅能確定task會依放入queue的順序執行，外面的工作與task先後無法確定順序
+  - 中斷點驗證
+  
+  ![breakpoint of serial queue with async](./images/BPSQASync.gif)
+
 - Coucurecy Queue with Async
-- DispatchGruop
-- DispatchSemaphore
+  - 範例程式: **concurrentQueueASync**
+  - 完全無法決定執行順序
+  - 中斷點驗證
+  
+  ![breakpoint of serial queue with async](./images/BPCQASync.gif)
+
+- 結論
+  - sync在任一種queue執行結果都相同
+  - 非必要不使用sync，雖然是交由其它thread來處理，但還是要等工作做完才可以往下，那不如留在原本的thread處理即可。
+  - 非同步方法請預留closure參數
+
+### DispatchGruop
+- 適用情境：多個task都執行完成後，才執行某個特定task
+- notify方法屬於async
+- 範例程式： **testGroup**
+- 若執行結果不符合預期
+  - 檢查是否有加入enter與leave，且須成雙成對
+  - notify宣告的位置是否正確
+
+### DispatchSemaphore
+- 初始需給定信號值，需大於等於0
+  - 設定小於零不會出錯
+  - 後續操作會crash
+- signal = 信號值+1
+- wait = 信號值-1
+- 呼叫wait方法後，若信號位小於0，程式就會卡住，不繼續往下執行，待信號值大於等於0才會繼續往下執行
+- 可以達成DispatchGruop需求且不讓程式繼續往下執行
+- 範例程式: **testSemaphore**
 
 ### Thread Safe
 > Thread safe code can be safely called from multiple threads or concurrent tasks without causing any problems such as data corruption or app crashes
@@ -127,7 +159,7 @@ iOS實現多工作業常用方式：
                   return instance;
               }
 
-       - swift：golbal變數採用lazy initializer，在第一次被存取時，會自行調用dispatch_once以確保物件atomic，所以不用特別處理。
+       - swift：global變數採用lazy initializer，在第一次被存取時，會自行調用dispatch_once以確保物件atomic，所以不用特別處理。
 
               static let sharedInstance = SomeObject()
 
@@ -137,11 +169,8 @@ iOS實現多工作業常用方式：
      - 物件為mutable
      - 解決方式：使用GCD來解決
        1. Serial Queue
-       2. concurrent queue + barriers flag
-     - 範例程式: **testOperationQueue**
-
-### 結論
-- 非必要不使用sync：雖然是交由其它thread來處理，但還是要等工作做完才可以往下，那不如留在原本的thread處理即可
+       2. concurrent queue + barrier flag: queue的task必須等待設定barrier的task完成後才開始執行
+     - 範例程式: **testDictThreadSafety**
 
 ---
 ## Operation + OperationQueue

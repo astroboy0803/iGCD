@@ -69,7 +69,7 @@ extension ViewController {
     final private func testGCD() {
         // sync 結果會相同
         //self.serialQueueSync()
-        self.concurrentQueueSync()
+        //self.concurrentQueueSync()
         
         // serial: async內設定的作業還是依序處理, 但與沒加在在async的工作會交互進行
         //self.serialQueueASync()
@@ -77,18 +77,16 @@ extension ViewController {
         // concurrent: 完全無法決定順序
         //self.concurrentQueueASync()
         
+        //self.testGroup()
+        self.testSemaphore()
+        
+        // thread safe
+        //self.testDictThreadSafety()
+        
         // serial sync+async交叉應用
         //self.serialQueueComplex()
-        
-        
-        // GCD provides an elegant solution of creating a read/write lock using dispatch barriers
-        // 1 serial queue -> block -> resolve
-        // 2 concurrency queue -> not block -> unsafe -> set flags(DispatchWorkItemFlags) to indicate that it should be the only item executed on the specified queue for that particular time
-        // all items submitted to the queue prior to the dispatch barrier must complete before the DispatchWorkItem will execute.
-        //self.testDictThreadSafety()
     }
     
-    // MARK: serialQueue + sync = 完全依序處理
     final private func serialQueueSync() {
         
         let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
@@ -121,28 +119,30 @@ extension ViewController {
     
     final private func serialQueueASync() {
         let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
-
-        // 驗證同步執行的結果
+        
         serialQueue.async {
+            print("t1")
             for i in 0 ... 9 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         serialQueue.async {
+            print("t2")
             for i in 10 ... 19 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         serialQueue.async {
+            print("t3")
             for i in 20 ... 29 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         for j in 100 ... 109 {
-            print("j: \(j)")
+            print("out: \(j)")
         }
     }
     
@@ -178,27 +178,29 @@ extension ViewController {
     final private func concurrentQueueASync() {
         let concurrentQueue: DispatchQueue = DispatchQueue(label: "concurrentQueue", attributes: .concurrent)
 
-        // 驗證同步執行的結果
         concurrentQueue.async {
+            print("t1")
             for i in 0 ... 9 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         concurrentQueue.async {
+            print("t2")
             for i in 10 ... 19 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         concurrentQueue.async {
+            print("t3")
             for i in 20 ... 29 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         for j in 100 ... 109 {
-            print("j: \(j)")
+            print("out: \(j)")
         }
     }
     
@@ -209,6 +211,9 @@ extension ViewController {
         serialQueue.sync {
             for i in 0 ... 9 {
                 print("i: \(i)")
+            }
+            serialQueue.async {
+                
             }
         }
         
@@ -282,6 +287,94 @@ extension ViewController {
 //        for j in 100 ... 109 {
 //            print("j: \(j)")
 //        }
+    }
+    
+    final private func testGroup() {
+        let concurrentQueue: DispatchQueue = DispatchQueue(label: "concurrentQueue", attributes: .concurrent)
+        let group = DispatchGroup()
+        
+        // 太早宣告，導致一開始就觸發
+//        group.notify(queue: .main) {
+//            for j in 100 ... 109 {
+//                print("out: \(j)")
+//            }
+//        }
+        
+        group.enter()
+        concurrentQueue.async {
+            print("t1")
+            for i in 0 ... 9 {
+                print("in: \(i)")
+            }
+            group.leave()
+        }
+        group.enter()
+        concurrentQueue.async {
+            print("t2")
+            for i in 10 ... 19 {
+                print("in: \(i)")
+            }
+            group.leave()
+        }
+        
+        group.enter()
+        concurrentQueue.async {
+            print("t3")
+            for i in 20 ... 29 {
+                print("in: \(i)")
+            }
+            group.leave()
+        }
+        
+        group.notify(queue: .main) {
+            for j in 100 ... 109 {
+                print("out: \(j)")
+            }
+        }
+        
+        print("end....")
+    }
+    
+    final private func testSemaphore() {
+        let semphore = DispatchSemaphore(value: 0)
+        //let semphore = DispatchSemaphore(value: -3)
+        let concurrentQueue: DispatchQueue = DispatchQueue(label: "concurrentQueue", attributes: .concurrent)
+        var taskCount = 0
+        taskCount += 1
+        concurrentQueue.async {
+            print("t1")
+            for i in 0 ... 9 {
+                print("in: \(i)")
+            }
+            semphore.signal()
+        }
+        
+        taskCount += 1
+        concurrentQueue.async {
+            print("t2")
+            for i in 10 ... 19 {
+                print("in: \(i)")
+            }
+            semphore.signal()
+        }
+        
+        taskCount += 1
+        concurrentQueue.async {
+            print("t3")
+            for i in 20 ... 29 {
+                print("in: \(i)")
+            }
+            semphore.signal()
+        }
+        for _ in 0..<taskCount {
+            semphore.wait()
+        }
+        
+        for j in 100 ... 109 {
+            print("out: \(j)")
+        }
+        
+        print("end....")
     }
     
     final private func testDictThreadSafety() {
