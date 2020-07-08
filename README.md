@@ -69,13 +69,19 @@ iOS實現多工作業常用方式：
 
 ### 範例
 - Serial Queue with Sync
+  - 範例程式: **testOperationQueue**
+  - 流程圖
+  ![serial queue with sync ](./images/SQSync.gif)
+  - 中斷點驗證
+  ![breakpoint of serial queue with sync ](./images/BPSQSync.gif)
+
 - Coucurecy Queue with Sync
+
+
 - Serial Queue with Async
 - Coucurecy Queue with Async
-
-### DispatchGruop
-
-### DispatchSemaphore
+- DispatchGruop
+- DispatchSemaphore
 
 ### Thread Safe
 > Thread safe code can be safely called from multiple threads or concurrent tasks without causing any problems such as data corruption or app crashes

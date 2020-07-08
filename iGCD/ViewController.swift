@@ -68,8 +68,8 @@ extension ViewController {
 extension ViewController {
     final private func testGCD() {
         // sync 結果會相同
-        self.serialQueueSync()
-        //self.concurrentQueueSync()
+        //self.serialQueueSync()
+        self.concurrentQueueSync()
         
         // serial: async內設定的作業還是依序處理, 但與沒加在在async的工作會交互進行
         //self.serialQueueASync()
@@ -90,29 +90,32 @@ extension ViewController {
     
     // MARK: serialQueue + sync = 完全依序處理
     final private func serialQueueSync() {
+        
         let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
         
-        // 驗證同步執行的結果
-        serialQueue.async {
+        serialQueue.sync {
+            print("t1")
             for i in 0 ... 9 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
-        serialQueue.async {
+        serialQueue.sync {
+            print("t2")
             for i in 10 ... 19 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
-        serialQueue.async {
+        serialQueue.sync {
+            print("t3")
             for i in 20 ... 29 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         for j in 100 ... 109 {
-            print("j: \(j)")
+            print("out: \(j)")
         }
     }
     
@@ -145,27 +148,30 @@ extension ViewController {
     
     final private func concurrentQueueSync() {
         let concurrentQueue: DispatchQueue = DispatchQueue(label: "concurrentQueue", attributes: .concurrent)
-        // 驗證同步執行的結果
+
         concurrentQueue.sync {
+            print("t1")
             for i in 0 ... 9 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         concurrentQueue.sync {
+            print("t2")
             for i in 10 ... 19 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         concurrentQueue.sync {
+            print("t3")
             for i in 20 ... 29 {
-                print("i: \(i)")
+                print("in: \(i)")
             }
         }
         
         for j in 100 ... 109 {
-            print("j: \(j)")
+            print("out: \(j)")
         }
     }
     
