@@ -1,6 +1,6 @@
-# iGCD
+# iOS 多工運作流程與應用
 
-iOS實現多工作業的方式：
+iOS實現多工作業常用方式：
 - GCD(Grand Central Dispatch) - 以C語言開發的底層API
 - Operation - 將task封裝成Operation物件，再將operation放到OperationQueue中，再依狀況取出task執行
 
@@ -18,21 +18,35 @@ iOS實現多工作業的方式：
 - Parallelism：同時執行task
 > Note that GCD decides how much parallelism it requires based on the system and available system resources. It’s important to note that parallelism requires concurrency, but concurrency does not guarantee parallelism
 
-### sync vs async
-- sync：等待task執行完成後才離開，blocking(阻塞)，結束前程式不會往下執行
-- async：task放入佇列後就離開，not blocking(不阻塞)，不管程式結果如何，直接執行下一行程式
+iOS Queue種類
+- main: Serial Queue
+- global: Concurrent Queue
+- custom: 自行建立與管理，開發者依需求自行決定Serial Queue或Concurrent Queue
 
 ### serial vs concurrent
 - serial：一次只能執行一個task，可知執行順序
 
-![](./images/serialQueueWork.gif)
+![serial queue](./images/serialQueueWork.gif)
 
 - concurrent：一次可以執行多個task，無法預測執行順序
 
-![](./images/concurrentQueueWork.gif)
+![concurrent queue](./images/concurrentQueueWork.gif)
+
+### sync(同步) vs async(非同步) - 將task放入Work Queue後如何處理這個task
+- sync
+  - 等待task執行完成後才離開
+  - blocking(阻塞)，結束前程式不會往下執行
+- async
+  - task放入work queue後就離開
+  - not blocking(不阻塞)，不等待task直接往下執行程式
+
 
 ### 範例
-- [Serial Queue with Sync](./Examples/SerialQueueWithSync.md)
+- Serial Queue with Sync
+- Coucurecy Queue with Sync
+- Serial Queue with Async
+- Coucurecy Queue with Async
+
 
 ---
 ## Operation + OperationQueue
