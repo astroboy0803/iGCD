@@ -9,7 +9,7 @@ iOS實現多工作業常用方式：
 ## GCD
 > Dispatch queues are thread-safe which means that you can access them from multiple threads simultaneously
 
-### Concurrency(平行) vs Parallelism(並行)
+### Concurrency(並行) vs Parallelism(平行)
 
 ![](./images/Concurrency_vs_Parallelism.png)
 
