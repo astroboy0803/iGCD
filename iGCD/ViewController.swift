@@ -22,8 +22,87 @@ class ViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.testGCD()
-        //self.testOperationQueue()
+        priorityInversion()
+//        self.testGCD()
+//        self.testOperationQueue()
+//        self.task1()
+//        self.task2()
+        //self.task3() // crash
+    }
+    
+    private final func task1() {
+        let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
+        serialQueue.sync {
+            print("t1")
+            Thread.sleep(forTimeInterval: 2)
+            for i in 0 ... 9 {
+                print("in: \(i)")
+            }
+        }
+    }
+    
+    private final func task2() {
+        let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
+        serialQueue.sync {
+            print("t2")
+            for i in 10 ... 19 {
+                print("in: \(i)")
+            }
+        }
+    }
+    
+    private final func task3() {
+        let serialQueue: DispatchQueue = DispatchQueue(label: "serialQueue")
+        serialQueue.sync {
+            print("t3")
+            for i in 20 ... 29 {
+                print("in: \(i)")
+            }
+            serialQueue.sync {
+                for i in 30 ... 39 {
+                    print("in: \(i)")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Priority Inversion
+extension ViewController {
+    final private func priorityInversion() {
+        enum Color: String {
+            case blue = "🔵"
+            case white = "⚪️"
+        }
+
+        func output(color: Color, times: Int) {
+            for _ in 1...times {
+                print(color.rawValue)
+            }
+        }
+
+        let starterQueue = DispatchQueue(label: "com.besher.starter", qos: .userInteractive)
+        let utilityQueue = DispatchQueue(label: "com.besher.utility", qos: .utility)
+        let backgroundQueue = DispatchQueue(label: "com.besher.background", qos: .background)
+        let count = 10
+        
+        // utility(藍) > background(白)
+        starterQueue.async {
+            backgroundQueue.async {
+                output(color: .white, times: count)
+            }
+            backgroundQueue.async {
+                output(color: .white, times: count)
+            }
+            utilityQueue.async {
+                output(color: .blue, times: count)
+            }
+            utilityQueue.async {
+                output(color: .blue, times: count)
+            }
+            // priority inversion
+            backgroundQueue.sync {}
+        }
     }
 }
 
@@ -32,7 +111,7 @@ extension ViewController {
     final private func testOperationQueue() {
         // 設定concurrent數量 - 最大值還是取決於設備與系統
         let operationQueue = OperationQueue()
-        //operationQueue.maxConcurrentOperationCount = 2
+//        operationQueue.maxConcurrentOperationCount = 2
         for idx in 0...10 {
             operationQueue.addOperation {
                 print("idx = \(idx)")
@@ -68,23 +147,23 @@ extension ViewController {
 extension ViewController {
     final private func testGCD() {
         // sync 結果會相同
-        //self.serialQueueSync()
-        //self.concurrentQueueSync()
+//        self.serialQueueSync()
+//        self.concurrentQueueSync()
         
         // serial: async內設定的作業還是依序處理, 但與沒加在在async的工作會交互進行
-        //self.serialQueueASync()
+//        self.serialQueueASync()
         
         // concurrent: 完全無法決定順序
-        //self.concurrentQueueASync()
+//        self.concurrentQueueASync()
         
-        //self.testGroup()
-        self.testSemaphore()
+//        self.testGroup()
+//        self.testSemaphore()
         
         // thread safe
-        //self.testDictThreadSafety()
+//        self.testDictThreadSafety()
         
         // serial sync+async交叉應用
-        //self.serialQueueComplex()
+        self.serialQueueComplex()
     }
     
     final private func serialQueueSync() {
@@ -386,7 +465,7 @@ extension ViewController {
 //                element.description()
 //            }
 //        }
-//
+
 //        // fix by serial queue
 //        for idx in 0...100 {
 //            self._serialQueue.async {
@@ -407,10 +486,12 @@ extension ViewController {
         
         // fix by concurrent queue
         for idx in 0...100 {
-            self._concurrentQueue.async(flags: .barrier) {
+            self._concurrentQueue.async {
                 let element = DictElement(serNo: idx)
-                self._dict["Element"] = element
-                element.description()
+                self._concurrentQueue.async(flags: .barrier) {
+                    self._dict["Element"] = element
+                    element.description()
+                }
             }
         }
     }
